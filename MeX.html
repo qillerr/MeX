@@ -1,0 +1,478 @@
+<html>
+	<head>
+
+		<script>
+			window.MathJax = {
+			  tex: {
+				displayMath: [['\\math_start', '\\math_end']]
+				
+			  },
+			  chtml: {
+				displayAlign: 'left'
+			  }
+			};
+			</script>
+			<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+			<script id="MathJax-script" async
+         		 src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  			</script>
+
+		<script>
+			function escapeRegExp(string) {
+			return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+			}
+			
+			
+			const exclude = '(?<!\\.)';
+			//If you don't want it escapable, then use regex instead of string
+			const Separators = [
+			
+				{ val: 'l**', name: 'latex', type: 'paired' },
+				{ val: '**l', name: 'right_latex' },
+				{ reg: /(?<!\.)%.*$/m, name: 'comment' },
+				
+				{ reg: /(?<!\\)\\(?!\\)/, name: 'trigger' },
+				{ reg: /\\/, name: 'backslash' },
+				{ reg: /\n/, name: 'new_line' },
+				
+				{ reg: /\d+(\.\d*(\(\d+\))?)?/, name: 'number', facade: 'M' },
+				
+				{ val: ',', name: 'comma' },
+				
+				{ val: '[', closingVal: ']', name: 'bracket', type: 'paired' },
+				{ val: ']', name: 'right_bracket' },
+				{ val: '{', closingVal: '}', name: 'curly', type: 'paired' },
+				{ val: '}', name: 'right_curly' },
+				{ val: '(', closingVal: ')', name: 'paren', type: 'paired', facade: 'M' },
+				{ val: ')', name: 'right_paren' },
+				
+				{ val: '!=', name: 'not-equal' },
+				{ val: '>=', name: 'greater-or-equal' },
+				{ val: '<=', name: 'less-or-equal' },
+				
+				{ val: '^', name: 'power' },
+				{ val: '>', name: 'greater' },
+				{ val: '>', name: 'less' },
+				
+				{ val: '+', name: 'plus' },
+				{ val: '-', name: 'minus' },
+				{ val: '*', name: 'multiply' },
+				{ val: '/', name: 'divide' },
+				
+				{ val: '=', name: 'equal' },
+				
+				//Simple functions
+				{ val: 'sin', name: 'sin', facade: 'SF', mode: 'choose name' },
+				{ val: 'cos', name: 'cos', facade: 'SF', mode: 'choose name' },
+				{ val: 'tan', name: 'tan', facade: 'SF', mode: 'choose name' },
+				{ val: 'tg', name: 'tan', facade: 'SF', mode: 'choose name' },
+				{ val: 'cot', name: 'cot', facade: 'SF', mode: 'choose name' },
+				{ val: 'ctg', name: 'cot', facade: 'SF', mode: 'choose name' },
+				
+				{ val: 'Pi', name: 'pi', facade: 'sep_symbol', mode: 'choose name' },
+				{ val: 'pi', name: 'pi', facade: 'sep_symbol', mode: 'choose name' },
+				{ val: 'omega', name: 'omega', facade: 'sep_symbol', mode: 'choose name' },
+
+				{ val: 'sqrt', name: 'root' },
+
+
+
+
+
+
+				//At the end here it is:
+				{ reg: /\w/, name: 'character', facade: 'M'}
+
+			];
+			
+			const Patterns = [
+			
+				//{ in: ['number', 'power', 'number'], out: [{type: 'literal', from: 0},'^{',{type: 'literal', from:2},'}'] },
+				//{ in: ['number', 'power', 'paren'], out: [{type: 'literal', from: 0},'^{',{type: 'literal', from:2},'}'] },
+				//{ in: ['number'], out: [{type: 'literal', from: 0}], name: 'M' },
+				//{ in: ['paren'], out: [{type: 'literal', from: 0}], name: 'M' },
+				{ in: ['sep_symbol'], out: ['\\', 0, ' '], name: 'symbol', facade: 'M', type: 'facade' },
+				{ in: ['SF', 'paren'], out: ['\\',0,'(', 1,')'], name: 'simple_f', facade: 'M', type: 'facade' },
+				{ in: ['SF', 'power', 'M', 'paren'], out: ['\\',0,'^{',2,'}(', 3,')'], name: 'simple_f', facade: 'M', type: 'facade' },
+				{ in: ['root', 'paren'], out: ['\\sqrt{',1,'}'], name: 'sqrt', facade: 'M', type: 'facade' },
+				{ in: ['root', 'bracket', 'paren'], out: ['\\sqrt[',1,']{',2,'}'], name: 'n_rt', facade: 'M', type: 'facade' },
+				{ in: ['M', 'power', 'M'], out: [0,'^{',2,'}'], name: 'merged_power', facade: 'M'},
+				{ in: ['M', 'divide', 'M'], out: ['\\frac{',0,'}{',2,'}'], name: 'fraction' },
+				// { in: ['paren', 'divide', 'paren'], out: ['\\frac{',0,'}{',2,'}'], name: 'fraction' },
+				// { in: ['number', 'divide', 'paren'], out: ['\\frac{',0,'}{',2,'}'], name: 'fraction' },
+				// { in: ['paren', 'divide', 'number'], out: ['\\frac{',0,'}{',2,'}'], name: 'fraction' },
+				// { in: ['number', 'divide', 'number'], out: ['\\frac{',0,'}{',2,'}'], name: 'fraction' },
+
+			];
+			
+			Separators.forEach(sep=>{
+				if(sep.val && !sep.reg)
+					sep.reg = new RegExp(exclude+' ?'+escapeRegExp(sep.val)+' ?');
+			
+				if(typeof sep.reg == 'string')
+					sep.reg = new RegExp(exclude+' ?'+escapeRegExp(sep.reg)+' ?');
+					
+			})
+			
+			function splitter(text)
+			{
+				let arr = ["", text]
+				splitTokenize(arr)
+				
+				console.log(arr);
+				let object = parseTokenize(arr, 0);
+				console.log(object);
+
+				findAndReplaceAll(object);
+				console.log(11111111111111111111111111,object);
+				return builder(object);
+			}
+
+			function findAndReplaceAll(object){
+				for(let pattern of Patterns)
+				{
+					while(findAndReplace(object, pattern))
+					{
+						console.log('Replaced');
+					}
+				}
+			}
+
+			function checkChildren(el){
+				try{
+					el.children[0].length;
+					return 1;
+				}catch(e){
+					return 0;
+				}
+			}
+
+			function checkName(object, name)
+			{
+				if(object.name == name)
+					return 1;
+
+				if(object.facade == name)
+					return 1
+			
+				return 0;
+			}
+
+			function findAndReplace(array, pattern){
+				for(let c=0;c<array.length;c++){
+					if(c<=array.length-pattern.in.length){
+						console.log(array[c]);
+						let correct = 1;
+						for(let p=0;p<pattern.in.length;p++)
+						{
+							let selected = array[c+p];
+							if(typeof selected == 'string')
+								{correct = 0; break;}
+							if(!checkName(selected, pattern.in[p]))
+								{correct = 0; break;}
+						}
+						if(correct)
+						{
+							console.log('Correcto')
+							let toOut = JSON.parse(JSON.stringify(pattern));
+							for(let i=0;i<toOut.out.length;i++)
+							{
+								let el = toOut.out[i]
+								if(typeof el == 'string')
+									continue;
+
+								if(typeof el == 'number') //automatic type support
+								{
+									if(checkChildren(array[c+el]))
+									{
+										toOut.out[i] = {type: 'inside', from: el};
+									}
+									else{
+										toOut.out[i] = {type: 'literal', from: el};
+									}
+								}
+
+								el = toOut.out[i];
+								if(el.type == 'inside')
+								{
+									el.children = JSON.parse(JSON.stringify(array[c+el.from].children[0]));
+								}
+								if(el.type == 'literal')
+								{
+									el.object = JSON.parse(JSON.stringify(array[c+el.from]));
+								}
+							}
+
+							array.splice(c, pattern.in.length, toOut);
+
+							return 1;
+
+						}
+					}
+						
+					let selected = array[c];
+					if(typeof selected == 'object')
+					{
+						console.log(11, selected)
+						if(selected.children)
+							if(findAndReplace(selected.children[0], pattern))
+								return 1;
+						if(selected.out)
+							for(let el of selected.out)
+							{
+								console.log('asd');
+								if(el.children)
+									if(findAndReplace(el.children, pattern))
+										return 1;
+							}
+						
+						// try{
+						// 	selected.object.out;
+						// 	if(findAndReplace(selected.object.out, pattern))
+						// 		return 1;
+						// }catch(err){
+
+						// }
+							
+
+					}
+							
+				}
+				return 0;
+			}
+
+			function getTokenValue(token){
+				if(token.mode == 'choose name')
+					return token.name;
+
+				return token.value;
+			}
+			
+			function builder(tokenArray, isDisabled = 0){
+				let out = "";
+				
+				for(let token of tokenArray)
+				{
+					if(typeof token == 'string')
+					{
+						out = out+token;
+						continue;
+					}
+					if(token.type)
+					{
+						if(token.type == 'paired')
+						{
+							if(token.name == 'latex')
+							{
+								out += builder(token.children[0], 1);
+							}
+							else{
+								out +=token.val
+								+ builder(token.children[0], isDisabled)
+								+ token.closingVal;
+							
+							}
+
+						
+							continue;
+						}
+					}
+					if(token.out)
+					{
+						for(let el of token.out)
+						{
+							if(typeof el == 'string')
+								{out += el; continue;}
+							if(el.children){
+								if(el.children.length)
+								{
+									out += builder(el.children, isDisabled); 	
+								}
+							}
+							
+							if(el.object)
+							{
+								if(typeof el.object.value == 'string')
+								{
+									out += getTokenValue(el.object);
+								}
+								else{ // I don't remember if it's needed XD
+									for(let deepEl of el.object.out)
+									{
+										if(typeof deepEl == 'string')
+										{
+											out += deepEl;
+											continue;
+										}
+										if(!deepEl.object)
+										{
+											out += builder(deepEl.children, isDisabled)
+											continue;
+										}
+										
+										if(deepEl.object.type)
+											out += builder(deepEl.object.children[0], isDisabled)
+										else
+											out += getTokenValue(deepEl.object)
+									}
+									
+								}
+								
+							}
+
+						}
+						continue;
+					}
+					
+					out += getTokenValue(token);
+					
+					
+				}
+				
+				return out;
+			}
+			
+			function parseTokenize(arr, index){
+				let c = index;
+				let out=[];
+				let until = 0;
+				
+				try{
+					if(arr[index].type == 'paired')
+					{
+						until = 'right_'+arr[index].name;
+						c++;
+					}
+				}catch(e){}
+				
+				while(c<arr.length)
+				{
+					if(typeof arr[c] == 'string')
+					{
+						out.push( arr[c] );
+						c++;
+						continue;
+					}
+					if(arr[c].name == until)
+						break;
+					
+					if(arr[c].type)
+					{
+						if(arr[c].type == 'paired')
+						{
+							let result = parseTokenize(arr, c);
+							let obj = Object.assign({}, arr[c]);
+							obj.children = [];
+							obj.children[0] = result;
+							obj.sum = 2;
+							
+							result.forEach(el=>{
+								if(typeof el == 'string')
+									obj.sum++;
+								else
+									obj.sum+=el.sum;
+							})
+							
+							c=c+obj.sum;
+							out.push(obj);
+							
+							continue;
+						}
+					}
+					
+					let obj = Object.assign({}, arr[c]);
+					obj.sum = 1;
+					out.push( obj );
+					c++;
+				}
+				
+				return out;
+			}
+			
+			function splitTokenize(array)
+			{
+				didSomething=true;
+				while(didSomething){
+					didSomething = false;
+					for(let c=0;c<array.length;c++)
+					{
+						let el = array[c];
+						if(typeof el != 'string')
+							continue;
+						
+						for(let separator of Separators)
+						{
+							let matched = el.match(separator.reg);
+							if(!matched)
+								continue;
+							
+							
+							let token = Object.assign({}, separator)
+							token.value = matched[0];
+							token.reg = null;
+							delete token.reg;
+							
+							let result = [
+								el.substring(0,matched.index),
+								token,
+								el.substring(matched.index+token.value.length)
+							];
+							
+							result = result.filter(el=>{return el!=""})
+							
+							array.splice(c, 1, ...result);
+							
+							didSomething=true;
+							break;
+						}
+
+						if(didSomething)
+							break;
+					}
+					
+					
+					
+					
+				}
+			}
+
+			setTimeout(()=>{
+
+				console.log(1);
+				function updateMeX(){
+					console.log(2);
+					let returned = splitter(document.getElementById('in').value);
+					document.getElementById('out').value = returned;
+					returned = returned.replaceAll('\n', '\\math_end \\math_start');
+					document.getElementById('tex-out').innerHTML = '\\math_start'+returned+'\\math_end';
+
+					console.log(document.getElementById('tex-out').innerHTML)
+					
+					MathJax.typeset()
+				}
+				document.querySelector("#in").addEventListener('keyup', updateMeX);
+			},1000);
+			
+			
+		</script>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+		<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	
+	</head>
+	<body>
+		<div class="container">
+			<div class="row">
+				<div class="col-6">
+					<textarea class="form-control" rows="20" id="in"></textarea>
+				</div>
+				<div class="col-6 tex" id="tex-out">Start editing ..</div>
+			</div>
+			
+			<textarea class="form-control" rows="20" id="out" disabled>
+
+			</textarea>
+		</div>
+	</body>
+</html>

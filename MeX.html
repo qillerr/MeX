@@ -27,18 +27,25 @@
 			//If you don't want it escapable, then use regex instead of string
 			const Separators = [
 			
-				{ val: 'l**', name: 'latex', type: 'paired' },
-				{ val: '**l', name: 'right_latex' },
-				{ reg: /(?<!\.)%.*$/m, name: 'comment' },
+				{ val: 'l**', name: 'latex', type: 'paired' }, //TODO it's not working
+				{ val: '**l', name: 'right_latex' }, //TODO it's not working
+				{ reg: /(?<!\.)%l.*$/m, name: 'latex-line', mode: "ignore first few chars", start_from: 2  },
+				{ reg: /(?<!(\.|\d|\)))%.*$/m, name: 'comment' },
 				
 				{ reg: /(?<!\\)\\(?!\\)/, name: 'trigger' },
 				{ reg: /\\/, name: 'backslash' },
 				{ reg: /\n/, name: 'new_line' },
+
+				// Example of use: [3,5) for a range
+				{ val: '.[', name: '\\[', facade: 'non-mutable', mode: 'choose name' },
+				{ val: '.]', name: '\\]', facade: 'non-mutable', mode: 'choose name' },
+				{ val: '.(', name: '\\(', facade: 'non-mutable', mode: 'choose name' },
+				{ val: '.)', name: '\\)', facade: 'non-mutable', mode: 'choose name' },
 				
+				{ reg: /%/, name: 'percent_sign', facade: 'percent' },
 				{ reg: /\d+(\.\d*(\(\d+\))?)?/, name: 'number', facade: 'M' },
-				
 				{ val: ',', name: 'comma' },
-				
+
 				{ val: '[', closingVal: ']', name: 'bracket', type: 'paired' },
 				{ val: ']', name: 'right_bracket' },
 				{ val: '{', closingVal: '}', name: 'curly', type: 'paired' },
@@ -46,14 +53,27 @@
 				{ val: '(', closingVal: ')', name: 'paren', type: 'paired', facade: 'M' },
 				{ val: ')', name: 'right_paren' },
 				
-				{ val: '!=', name: 'not-equal' },
-				{ val: '>=', name: 'greater-or-equal' },
-				{ val: '<=', name: 'less-or-equal' },
+
+
+				// { val: '<<', name: 'll', facade: 'non-mutable', mode: 'choose name' },
+				// { val: '>>', name: 'gg', facade: 'non-mutable', mode: 'choose name' },
+				{ val: '~~', name: 'approx', facade: 'non-mutable', mode: 'choose name' },
+				{ val: '~', name: 'sim', facade: 'non-mutable', mode: 'choose name' },
+				// { val: 'approx', name: 'approx', facade: 'non-mutable', mode: 'choose name' },
+
 				
+				{ val: '!=', name: 'neq', facade: 'non-mutable', mode: 'choose name' },
+				{ val: '>=', name: 'geq', facade: 'non-mutable', mode: 'choose name' },
+				{ val: '<=', name: 'leq', facade: 'non-mutable', mode: 'choose name' },
+				
+				{ val: '->', name: 'to', facade: 'sep_symbol', mode: 'choose name' },
+
 				{ val: '^', name: 'power' },
+				{ val: '_', name: 'sub' },
 				{ val: '>', name: 'greater' },
 				{ val: '>', name: 'less' },
 				
+				{ val: '+-', name: 'pm', facade: 'non-mutable', mode: 'choose name' },
 				{ val: '+', name: 'plus' },
 				{ val: '-', name: 'minus' },
 				{ val: '*', name: 'multiply' },
@@ -65,19 +85,80 @@
 				{ val: 'sin', name: 'sin', facade: 'SF', mode: 'choose name' },
 				{ val: 'cos', name: 'cos', facade: 'SF', mode: 'choose name' },
 				{ val: 'tan', name: 'tan', facade: 'SF', mode: 'choose name' },
+				{ val: 'ctg', name: 'cot', facade: 'SF', mode: 'choose name' },
 				{ val: 'tg', name: 'tan', facade: 'SF', mode: 'choose name' },
 				{ val: 'cot', name: 'cot', facade: 'SF', mode: 'choose name' },
-				{ val: 'ctg', name: 'cot', facade: 'SF', mode: 'choose name' },
+				{ val: 'ln', name: 'ln', facade: 'SF', mode: 'choose name' },
 				
-				{ val: 'Pi', name: 'pi', facade: 'sep_symbol', mode: 'choose name' },
+				
+				
+				{ val: 'sum', name: 'sum', facade: 'sep_symbol', mode: 'choose name' },
+
+
+				{ val: 'infty', name: 'infty', facade: 'sep_symbol', mode: 'choose name' },
+				{ val: 'inf', name: 'infty', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'to', name: 'to', facade: 'sep_symbol', mode: 'choose name' },
+				
+				
+				// Greek
+				
+				// { val: 'vartheta', name: 'vartheta', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'varepsilon', name: 'varepsilon', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'varpi', name: 'varpi', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'varsigma', name: 'varsigma', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'varrho', name: 'varrho', facade: 'sep_symbol', mode: 'choose name' },
+
+				{ val: 'alpha', name: 'alpha', facade: 'sep_symbol', mode: 'choose name' },
+				{ val: 'beta', name: 'beta', facade: 'sep_symbol', mode: 'choose name' },
+				{ val: 'gamma', name: 'gamma', facade: 'sep_symbol', mode: 'choose name' },
+				{ val: 'delta', name: 'delta', facade: 'sep_symbol', mode: 'choose name' },
+				{ val: 'epsilon', name: 'epsilon', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'zeta', name: 'zeta', facade: 'sep_symbol', mode: 'choose name' },
+				{ val: 'eta', name: 'eta', facade: 'sep_symbol', mode: 'choose name' },
+				{ val: 'Gamma', name: 'Gamma', facade: 'sep_symbol', mode: 'choose name' },
+				{ val: 'Delta', name: 'Delta', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'Theta', name: 'Theta', facade: 'sep_symbol', mode: 'choose name' },
+				{ val: 'theta', name: 'theta', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'iota', name: 'iota', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'kappa', name: 'kappa', facade: 'sep_symbol', mode: 'choose name' },
+				{ val: 'lambda', name: 'lambda', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'mu', name: 'mu', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'nu', name: 'nu', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'xi', name: 'xi', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'Lambda', name: 'Lambda', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'Xi', name: 'Xi', facade: 'sep_symbol', mode: 'choose name' },
+				{ val: 'Pi', name: 'pi', facade: 'sep_symbol', mode: 'choose name' }, //ease of use
 				{ val: 'pi', name: 'pi', facade: 'sep_symbol', mode: 'choose name' },
+				{ val: 'rho', name: 'rho', facade: 'sep_symbol', mode: 'choose name' },
+				{ val: 'sigma', name: 'sigma', facade: 'sep_symbol', mode: 'choose name' },
+				{ val: 'tau', name: 'tau', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'Sigma', name: 'Sigma', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'Upsilon', name: 'Upsilon', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'Phi', name: 'Phi', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'upsilon', name: 'upsilon', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'phi', name: 'phi', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'varphi', name: 'varphi', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'chi', name: 'chi', facade: 'sep_symbol', mode: 'choose name' },
+				// { val: 'psi', name: 'psi', facade: 'sep_symbol', mode: 'choose name' },
 				{ val: 'omega', name: 'omega', facade: 'sep_symbol', mode: 'choose name' },
+				{ val: 'Psi', name: 'Psi', facade: 'sep_symbol', mode: 'choose name' },
+				{ val: 'Omega', name: 'Omega', facade: 'sep_symbol', mode: 'choose name' },
+				{ val: 'micro', name: 'mu', facade: 'sep_symbol', mode: 'choose name' },
+
+				//Here some easier symbols
+
+				{ val: 'deg', name: '°', facade: 'degree', mode: 'choose name' },
+				{ val: 'land', name: 'land', facade: 'non-mutable', mode: 'choose name' },
+				{ val: 'lor', name: 'lor', facade: 'non-mutable', mode: 'choose name' },
+				{ val: '...', name: 'dots', facade: 'non-mutable', mode: 'choose name' },
+
 
 				{ val: 'sqrt', name: 'root' },
 
+				{ val: '!in', name: 'notin', facade: 'non-mutable', mode: 'choose name' },
+				{ val: 'in', name: 'in', facade: 'non-mutable', mode: 'choose name' },
 
-
-
+				{ val: ' X ', name: 'times', facade: 'non-mutable', mode: 'choose name' },
 
 
 				//At the end here it is:
@@ -87,21 +168,18 @@
 			
 			const Patterns = [
 			
-				//{ in: ['number', 'power', 'number'], out: [{type: 'literal', from: 0},'^{',{type: 'literal', from:2},'}'] },
-				//{ in: ['number', 'power', 'paren'], out: [{type: 'literal', from: 0},'^{',{type: 'literal', from:2},'}'] },
-				//{ in: ['number'], out: [{type: 'literal', from: 0}], name: 'M' },
-				//{ in: ['paren'], out: [{type: 'literal', from: 0}], name: 'M' },
+			
+				{ in: ['non-mutable'], out: ['\\', 0, ' '], name: 'symbol' },
+				{ in: ['M', 'percent_sign'], out: [0, '\\%'], name: 'percent', facade: 'M', type: 'facade' },
 				{ in: ['sep_symbol'], out: ['\\', 0, ' '], name: 'symbol', facade: 'M', type: 'facade' },
 				{ in: ['SF', 'paren'], out: ['\\',0,'(', 1,')'], name: 'simple_f', facade: 'M', type: 'facade' },
-				{ in: ['SF', 'power', 'M', 'paren'], out: ['\\',0,'^{',2,'}(', 3,')'], name: 'simple_f', facade: 'M', type: 'facade' },
+				// { in: ['SF', 'power', 'M', 'paren'], out: ['\\',0,'^{',2,'}(', 3,')'], name: 'simple_f', facade: 'M', type: 'facade' },
 				{ in: ['root', 'paren'], out: ['\\sqrt{',1,'}'], name: 'sqrt', facade: 'M', type: 'facade' },
 				{ in: ['root', 'bracket', 'paren'], out: ['\\sqrt[',1,']{',2,'}'], name: 'n_rt', facade: 'M', type: 'facade' },
+				{ in: ['M', 'sub', 'M', 'power', 'M'], out: [0,'_{',2,'}^{', 4,'}'], name: 'merged_sub_pow', facade: 'M'},
+				{ in: ['M', 'sub', 'M'], out: [0,'_{',2,'}'], name: 'merged_subscript', facade: 'M'},
 				{ in: ['M', 'power', 'M'], out: [0,'^{',2,'}'], name: 'merged_power', facade: 'M'},
 				{ in: ['M', 'divide', 'M'], out: ['\\frac{',0,'}{',2,'}'], name: 'fraction' },
-				// { in: ['paren', 'divide', 'paren'], out: ['\\frac{',0,'}{',2,'}'], name: 'fraction' },
-				// { in: ['number', 'divide', 'paren'], out: ['\\frac{',0,'}{',2,'}'], name: 'fraction' },
-				// { in: ['paren', 'divide', 'number'], out: ['\\frac{',0,'}{',2,'}'], name: 'fraction' },
-				// { in: ['number', 'divide', 'number'], out: ['\\frac{',0,'}{',2,'}'], name: 'fraction' },
 
 			];
 			
@@ -113,18 +191,42 @@
 					sep.reg = new RegExp(exclude+' ?'+escapeRegExp(sep.reg)+' ?');
 					
 			})
+
+			class PerformanceMeasurer{
+				constructor(){
+					this.measures = [performance.now()];
+				}
+				lap(){
+					this.measures.push(performance.now())
+				}
+				diffs(){
+					let toReturn = [];
+					for(let c=1;c<this.measures.length;c++)
+					{
+						toReturn.push(Math.round((this.measures[c]-this.measures[c-1])));
+					}
+
+					return toReturn;
+				}
+			}
 			
 			function splitter(text)
 			{
 				let arr = ["", text]
+				let perf = new PerformanceMeasurer();
 				splitTokenize(arr)
-				
+				perf.lap();
 				console.log(arr);
+				
 				let object = parseTokenize(arr, 0);
-				console.log(object);
+				perf.lap();
 
 				findAndReplaceAll(object);
-				console.log(11111111111111111111111111,object);
+				console.log(object);
+				perf.lap();
+
+				console.log('Performances[ms]: ',perf.diffs());
+
 				return builder(object);
 			}
 
@@ -161,7 +263,7 @@
 			function findAndReplace(array, pattern){
 				for(let c=0;c<array.length;c++){
 					if(c<=array.length-pattern.in.length){
-						console.log(array[c]);
+						// console.log(array[c]);
 						let correct = 1;
 						for(let p=0;p<pattern.in.length;p++)
 						{
@@ -173,7 +275,7 @@
 						}
 						if(correct)
 						{
-							console.log('Correcto')
+							// console.log('Correcto')
 							let toOut = JSON.parse(JSON.stringify(pattern));
 							for(let i=0;i<toOut.out.length;i++)
 							{
@@ -213,14 +315,14 @@
 					let selected = array[c];
 					if(typeof selected == 'object')
 					{
-						console.log(11, selected)
+						// console.log(11, selected)
 						if(selected.children)
 							if(findAndReplace(selected.children[0], pattern))
 								return 1;
 						if(selected.out)
 							for(let el of selected.out)
 							{
-								console.log('asd');
+								// console.log('asd');
 								if(el.children)
 									if(findAndReplace(el.children, pattern))
 										return 1;
@@ -244,6 +346,8 @@
 			function getTokenValue(token){
 				if(token.mode == 'choose name')
 					return token.name;
+				if(token.mode == 'ignore first few chars')
+					return token.value.substring(token.start_from)
 
 				return token.value;
 			}
@@ -435,23 +539,8 @@
 					
 				}
 			}
+			
 
-			setTimeout(()=>{
-
-				console.log(1);
-				function updateMeX(){
-					console.log(2);
-					let returned = splitter(document.getElementById('in').value);
-					document.getElementById('out').value = returned;
-					returned = returned.replaceAll('\n', '\\math_end \\math_start');
-					document.getElementById('tex-out').innerHTML = '\\math_start'+returned+'\\math_end';
-
-					console.log(document.getElementById('tex-out').innerHTML)
-					
-					MathJax.typeset()
-				}
-				document.querySelector("#in").addEventListener('keyup', updateMeX);
-			},1000);
 			
 			
 		</script>
@@ -459,20 +548,80 @@
 		<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-	
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.min.js" integrity="sha512-GoORoNnxst42zE3rYPj4bNBm0Q6ZRXKNH2D9nEmNvVF/z24ywVnijAWVi/09iBiVDQVf3UlZHpzhAJIdd9BXqw==" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-matlab.min.js" integrity="sha512-wx8N/yCKMYeXceoTI1qdMOUZ0OBPMA36TcqlU8A9Eb46lYRto0LuEH/GZ1BuQWnND+9IUXxxRO8C8n1q3Gcnyg==" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/theme-monokai.min.js" integrity="sha512-S4i/WUGRs22+8rjUVu4kBjfNuBNp8GVsgcK2lbaFdws4q6TF3Nd00LxqnHhuxS9iVDfNcUh0h6OxFUMP5DBD+g==" crossorigin="anonymous"></script>
+		<link rel="stylesheet" href="bootstrap.min.css">
+		<style>
+			#editor{
+				width:100%;
+				height:900px;
+			}
+			#tex-out{
+				height:900px;
+				overflow-y:scroll;
+			}
+		</style>
+
+
+
 	</head>
 	<body>
-		<div class="container">
+		<div class="container" style="width:100%;margin-left:0px;margin-right:0px;max-width:100%">
 			<div class="row">
 				<div class="col-6">
-					<textarea class="form-control" rows="20" id="in"></textarea>
+					<div id="editor" id="editor">123</div>
 				</div>
 				<div class="col-6 tex" id="tex-out">Start editing ..</div>
 			</div>
 			
-			<textarea class="form-control" rows="20" id="out" disabled>
+			<textarea class="form-control" style="background-color: black;" rows="20" id="out" disabled>
 
 			</textarea>
 		</div>
+
+
+		<script>
+			var editor = ace.edit("editor");
+			editor.setTheme("ace/theme/monokai");
+			editor.session.setMode("ace/mode/matlab");
+			editor.setOptions({
+				wrap: true,
+				wrapBehavioursEnabled: true
+			});
+
+			let lastValue = '';
+			
+
+				// console.log(1);
+				function updateMeX(){
+					// console.log(2);
+					let returned = splitter(editor.getValue());
+					document.getElementById('out').value = returned;
+					returned = returned.replaceAll('\n', '\\math_end \\math_start');
+					document.getElementById('tex-out').innerHTML = '\\math_start'+returned+'\\math_end';
+
+					// console.log(document.getElementById('tex-out').innerHTML)
+					
+					MathJax.typeset()
+				}
+				function checkIfNew(){
+					let val = editor.getValue();;
+					let start = performance.now();
+					try{
+						if(lastValue != val )
+						{
+							lastValue = val;
+							updateMeX();
+						}	
+					}catch(e){
+						console.log('ERROR', e)
+					}finally{
+						setTimeout(checkIfNew, ((performance.now()-start)*2+200) );
+					}
+				}
+				setTimeout(()=>{checkIfNew()},500);
+		</script>
+
 	</body>
 </html>

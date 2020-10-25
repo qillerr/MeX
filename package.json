@@ -1,0 +1,25 @@
+{
+  "name": "mex-transpiler",
+  "version": "1.0.0",
+  "description": "Transpiles MeX code into LaTeX - more readable, easier to write ascii->latex maths",
+  "main": "main.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qillerr/MeX.git"
+  },
+  "keywords": [
+    "LaTeX",
+    "maths",
+    "parser",
+    "language"
+  ],
+  "author": "qillerr",
+  "license": "GPL-2.0-only",
+  "bugs": {
+    "url": "https://github.com/qillerr/MeX/issues"
+  },
+  "homepage": "https://github.com/qillerr/MeX#readme"
+}

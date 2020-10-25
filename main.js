@@ -1,15 +1,14 @@
 function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
-const { performance } = require('perf_hooks')
 const { exclude, Separators, Patterns } = require('./preset.js')
 
 class PerformanceMeasurer{
     constructor(){
-        this.measures = [performance.now()];
+        this.measures = [new Date().getTime()];
     }
     lap(){
-        this.measures.push(performance.now())
+        this.measures.push(new Date().getTime())
     }
     diffs(){
         let toReturn = [];

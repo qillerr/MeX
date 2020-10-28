@@ -157,6 +157,7 @@ module.exports.Patterns = [
     { in: ['sep_symbol'], out: ['\\', 0, ' '], name: 'symbol', facade: 'M', type: 'facade' },
     { in: ['SF', 'paren'], out: ['\\',0,'(', 1,')'], name: 'simple_f', facade: 'M', type: 'facade' },
     { in: ['SF', 'power', 'M', 'paren'], out: ['\\',0,'^{',2,'}(', 3,')'], name: 'simple_f', facade: 'M', type: 'facade' },
+    { in: ['SF'], out: ['\\',0,' '], name: 'simple_f', facade: 'M', type: 'facade' },
     { in: ['root', 'paren'], out: ['\\sqrt{',1,'}'], name: 'sqrt', facade: 'M', type: 'facade' },
     { in: ['root', 'bracket', 'paren'], out: ['\\sqrt[',1,']{',2,'}'], name: 'n_rt', facade: 'M', type: 'facade' },
     { in: ['M', 'sub', 'M', 'power', 'M'], out: [0,'_{',2,'}^{', 4,'}'], name: 'merged_sub_pow', facade: 'M'},

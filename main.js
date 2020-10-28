@@ -367,16 +367,56 @@ function splitTokenize(array, Separators)
     }
 }
 
+/**
+ * CacheMap - doubles the size of keys (for index) so might not be the best option for large cache, but for small it's worth it
+ * Adds index that keeps track of size and chronologically removes old things from the cache
+ */
+class CacheMap extends Map{
+    #maxSize;
+    #index = [];
 
+    constructor(maxSize = 256, iterable=[]){
+        super(iterable)
+        this.maxSize = maxSize;
+    }
 
-// TODO \/
-// module.exports = class MexContinuousTranspiler {
-//
-// }
+    unshift(key, value){
+        if(this.#index.indexOf(key) > -1){
+            this.#index.splice(this.#index.indexOf(key), 1)            
+        }
+        this.#index.unshift(key)
+        this.set(key, value)
+
+        if(this.#index.length >= this.#maxSize){
+            this.delete(this.#index[this.#maxSize-1])
+            this.#index.splice(this.#maxSize-1)
+        }
+    }
+
+    /**
+     * Puts called key at the top of the cache
+     * @param {*} key 
+     */
+    get(key){
+        let returnValue = super.get(key)
+        if(this.#index.indexOf(key) > -1){
+            this.#index.splice(this.#index.indexOf(key), 1)
+            this.#index.unshift(key)
+        }
+        return returnValue;
+    }
+
+    clear(){
+        super.clear()
+        this.#index = [];
+    }
+}
+
 module.exports.MexTranspiler = class MexTranspiler {
     debug
     Separators = Separators;
     Patterns = Patterns;
+    cache = new CacheMap();
 
     //Compiles/prepares separators (regex-wise)
     prepSeparators(){
@@ -408,6 +448,9 @@ module.exports.MexTranspiler = class MexTranspiler {
      */
     transpile(text)
     {
+        if(this.cache.has(text)){
+            return this.cache.get(text);
+        }
         //To work a new line needs to be added
         let arr = ["", text]
         let perf = new PerformanceMeasurer();
@@ -420,8 +463,11 @@ module.exports.MexTranspiler = class MexTranspiler {
 
         findAndReplaceAll(object, this.Patterns);
         perf.lap(); this.log(object);
-
+        
         this.log('Performance[ms]: ',perf.diffs());
-        return builder(object);
+        
+        let builtLatex = builder(object)
+        this.cache.unshift(text, builtLatex)
+        return builtLatex;
     }
 }

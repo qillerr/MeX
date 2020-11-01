@@ -411,7 +411,7 @@ class CacheMap extends Map{
         this.#index = [];
     }
 }
-
+module.exports.CacheMap = CacheMap;
 module.exports.MexTranspiler = class MexTranspiler {
     debug
     Separators = Separators;
